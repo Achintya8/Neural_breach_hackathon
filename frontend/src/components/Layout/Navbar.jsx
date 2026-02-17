@@ -25,7 +25,7 @@ const Navbar = () => {
                     <div className="flex items-center">
                         <Link to="/dashboard" className="flex items-center gap-2 text-stone-900 font-bold text-xl">
                             <BookOpen className="text-amber-700" />
-                            <span>CampusShare</span>
+                            <span>SegFault Society</span>
                         </Link>
                     </div>
                     <div className="hidden md:block">

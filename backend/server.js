@@ -27,7 +27,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/resources', require('./routes/resources'));
 
 app.get('/', (req, res) => {
-    res.json({ message: 'Campus Resource Sharing API' });
+    res.json({ message: 'SegFault Society API' });
 });
 
 app.listen(PORT, () => {
