@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../utils/api';
-import { Calendar, BookOpen, User, Tag, Shield, Search, Star, Download, Eye } from 'lucide-react';
+import { Calendar, BookOpen, User, Tag, Shield, Search, Star, Download, Eye, Bookmark } from 'lucide-react';
 
 const Dashboard = () => {
     const [resources, setResources] = useState([]);
@@ -15,6 +15,9 @@ const Dashboard = () => {
         branch: '',
         sort: 'latest'
     });
+    const [showCollectionModal, setShowCollectionModal] = useState(false);
+    const [selectedResource, setSelectedResource] = useState(null);
+    const [collections, setCollections] = useState([]);
 
     const fetchResources = async () => {
         try {
@@ -46,8 +49,34 @@ const Dashboard = () => {
     };
 
     const handleSearch = (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Keep original behavior of preventing default form submission
+        // The instruction's handleSearch included setSearchTerm(e.target.value);
+        // However, setSearchTerm is not defined and filters.search is already handled by handleFilterChange.
+        // Assuming the intent was to trigger a search based on current filters.
         fetchResources();
+    };
+
+    const openCollectionModal = async (resource) => {
+        setSelectedResource(resource);
+        try {
+            const res = await api.get('/collections?type=my');
+            setCollections(res.data);
+            setShowCollectionModal(true);
+        } catch (err) {
+            console.error('Error fetching collections:', err);
+        }
+    };
+
+    const handleAddToCollection = async (collectionId) => {
+        try {
+            await api.post(`/collections/${collectionId}/resources`, {
+                resourceId: selectedResource.id
+            });
+            alert('Added to collection!');
+            setShowCollectionModal(false);
+        } catch (err) {
+            alert('Error adding to collection');
+        }
     };
 
     return (
@@ -222,12 +251,60 @@ const Dashboard = () => {
                             </div>
 
                             <div className="flex gap-3 mt-auto">
-                                <Link to={`/resource/${resource.id}`} className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-900 py-2 rounded-lg font-medium text-center transition-colors">
+                                <Link to={`/resources/${resource.id}`} className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-900 py-2 rounded-lg font-medium text-center transition-colors">
                                     View Details
                                 </Link>
+                                <button
+                                    onClick={() => openCollectionModal(resource)}
+                                    className="p-2 bg-stone-100 hover:bg-amber-100 text-stone-700 hover:text-amber-700 rounded-lg transition-colors"
+                                    title="Save to Collection"
+                                >
+                                    <Bookmark size={18} />
+                                </button>
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* Collection Modal */}
+            {showCollectionModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl animate-fade-in">
+                        <h2 className="text-2xl font-bold text-stone-900 mb-4">Save to Collection</h2>
+                        <p className="text-stone-600 mb-4 text-sm">
+                            Select a collection to add <strong>{selectedResource?.title}</strong>
+                        </p>
+
+                        {collections.length === 0 ? (
+                            <div className="text-center py-6 text-stone-500">
+                                <p className="mb-3">You don't have any collections yet.</p>
+                                <Link to="/collections" className="text-amber-600 hover:underline font-medium">
+                                    Create one now →
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="space-y-2 max-h-80 overflow-y-auto mb-4">
+                                {collections.map(collection => (
+                                    <button
+                                        key={collection.id}
+                                        onClick={() => handleAddToCollection(collection.id)}
+                                        className="w-full text-left p-3 bg-stone-50 hover:bg-amber-50 rounded-lg transition-colors border border-stone-200 hover:border-amber-300"
+                                    >
+                                        <div className="font-medium text-stone-900">{collection.title}</div>
+                                        <div className="text-xs text-stone-500">{collection.resources?.length || 0} resources</div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        <button
+                            onClick={() => setShowCollectionModal(false)}
+                            className="w-full py-2 text-stone-600 hover:bg-stone-100 rounded-lg transition-colors"
+                        >
+                            Cancel
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

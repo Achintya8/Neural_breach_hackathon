@@ -25,6 +25,7 @@ sequelize.authenticate()
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/resources', require('./routes/resources'));
+app.use('/api/collections', require('./routes/collections'));
 
 app.get('/', (req, res) => {
     res.json({ message: 'SegFault Society API' });

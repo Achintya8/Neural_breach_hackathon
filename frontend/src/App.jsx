@@ -8,6 +8,8 @@ import Dashboard from './components/Dashboard/Dashboard';
 import UploadResource from './components/Resources/UploadResource';
 import ResourceDetail from './components/Resources/ResourceDetail';
 import Profile from './components/Profile/Profile';
+import CollectionList from './components/Collections/CollectionList';
+import CollectionDetail from './components/Collections/CollectionDetail';
 import PrivateRoute from './components/Routing/PrivateRoute';
 
 const App = () => {
@@ -26,6 +28,9 @@ const App = () => {
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/upload" element={<PrivateRoute><UploadResource /></PrivateRoute>} />
           <Route path="/resource/:id" element={<PrivateRoute><ResourceDetail /></PrivateRoute>} />
+          <Route path="/resources/:id" element={<PrivateRoute><ResourceDetail /></PrivateRoute>} />
+          <Route path="/collections" element={<PrivateRoute><CollectionList /></PrivateRoute>} />
+          <Route path="/collections/:id" element={<PrivateRoute><CollectionDetail /></PrivateRoute>} />
 
           {/* 404 Route */}
           <Route path="*" element={<div className="text-stone-900 text-center mt-20">404 - Page Not Found</div>} />

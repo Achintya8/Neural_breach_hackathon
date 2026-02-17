@@ -4,8 +4,38 @@ const Resource = require('./Resource');
 const Tag = require('./Tag');
 const Review = require('./Review');
 const Discussion = require('./Discussion');
+const Collection = require('./Collection');
+const CollectionResource = require('./CollectionResource');
 
-// Define associations
+// ... existing associations ...
+
+// Collection Associations
+User.hasMany(Collection, {
+    foreignKey: 'user_id',
+    as: 'collections'
+});
+
+Collection.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'user'
+});
+
+Collection.belongsToMany(Resource, {
+    through: CollectionResource,
+    foreignKey: 'collection_id',
+    otherKey: 'resource_id',
+    as: 'resources'
+});
+
+Resource.belongsToMany(Collection, {
+    through: CollectionResource,
+    foreignKey: 'resource_id',
+    otherKey: 'collection_id',
+    as: 'collections'
+});
+
+
+// User-Resource Associations
 User.hasMany(Resource, {
     foreignKey: 'uploader_id',
     as: 'resources'
@@ -96,5 +126,7 @@ module.exports = {
     Tag,
     Review,
     Discussion,
+    Collection,
+    CollectionResource,
     syncDatabase
 };

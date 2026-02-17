@@ -33,6 +33,9 @@ const Navbar = () => {
                             <Link to="/dashboard" className="text-stone-600 hover:text-stone-900 px-3 py-2 rounded-md font-medium transition-colors">
                                 Dashboard
                             </Link>
+                            <Link to="/collections" className="text-stone-600 hover:text-stone-900 px-3 py-2 rounded-md font-medium transition-colors">
+                                Collections
+                            </Link>
                             <Link to="/upload" className="text-stone-600 hover:text-stone-900 px-3 py-2 rounded-md font-medium transition-colors">
                                 Upload
                             </Link>
