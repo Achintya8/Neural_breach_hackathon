@@ -1,38 +1,35 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { PrismaClient } = require('@prisma/client');
 
 const app = express();
-const prisma = new PrismaClient();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5173', // Vite default port
+    credentials: true
+}));
 app.use(express.json());
 
 // Database Connection Check
-async function checkDbConnection() {
-    try {
-        await prisma.$connect();
-        console.log('✅ Connected to PostgreSQL database via Prisma');
-    } catch (error) {
-        console.error('❌ Database connection failed:', error);
-        process.exit(1);
-    }
-}
+const { sequelize, syncDatabase } = require('./models');
 
-checkDbConnection();
+sequelize.authenticate()
+    .then(() => {
+        console.log('✓ MySQL Connected successfully');
+        return syncDatabase(); // Sync models to database
+    })
+    .catch(err => console.error('✗ Unable to connect to the database:', err));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/resources', require('./routes/resources'));
 
 app.get('/', (req, res) => {
-    res.send('Campus Resource Sharing API is running');
+    res.json({ message: 'Campus Resource Sharing API' });
 });
 
-// Start Server
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`✓ Server running on port ${PORT}`);
 });

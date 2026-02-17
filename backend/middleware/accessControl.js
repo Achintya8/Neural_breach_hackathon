@@ -1,32 +1,29 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { Resource } = require('../models');
 
 module.exports = async (req, res, next) => {
     try {
+        const user = req.userData; // From auth middleware
         const resourceId = req.params.id;
-        const user = req.userData; // Attached by auth middleware
 
-        const resource = await prisma.resource.findUnique({
-            where: { id: resourceId }
-        });
+        const resource = await Resource.findByPk(resourceId);
 
         if (!resource) {
             return res.status(404).json({ message: 'Resource not found' });
         }
 
-        // Check if resource is public
+        // If resource is public, allow access
         if (resource.privacy_level === 'PUBLIC') {
             req.resource = resource;
             return next();
         }
 
         // If private, check college match
-        if (user.college === resource.college) {
-            req.resource = resource;
-            return next();
+        if (resource.college && user.college !== resource.college) {
+            return res.status(403).json({ message: 'Access denied: This resource is private to ' + resource.college });
         }
 
-        return res.status(403).json({ message: 'Access denied: This resource is private to ' + resource.college });
+        req.resource = resource;
+        next();
 
     } catch (error) {
         console.error(error);

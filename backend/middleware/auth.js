@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { User } = require('../models');
 
 module.exports = async (req, res, next) => {
     // Get token from header
@@ -18,8 +17,8 @@ module.exports = async (req, res, next) => {
         // Add user to request
         req.user = decoded;
 
-        // Optional: Check if user still exists in DB
-        const user = await prisma.user.findUnique({ where: { id: decoded.id } });
+        // Check if user still exists in DB
+        const user = await User.findByPk(decoded.id);
         if (!user) {
             return res.status(401).json({ message: 'Token is not valid' });
         }

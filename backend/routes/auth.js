@@ -18,4 +18,14 @@ router.post('/login', authController.login);
 // @access  Private
 router.get('/me', auth, authController.getMe);
 
+// @route   POST api/auth/forgot-password
+// @desc    Send reset password email
+// @access  Public
+router.post('/forgot-password', authController.forgotPassword);
+
+// @route   PUT api/auth/reset-password/:token
+// @desc    Reset password
+// @access  Public
+router.put('/reset-password/:token', authController.resetPassword);
+
 module.exports = router;

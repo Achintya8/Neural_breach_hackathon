@@ -19,6 +19,8 @@ model User {
   branch        String
   semester      Int
   profile_pic   String?   // URL to S3
+  reset_token   String?
+  reset_token_expiry DateTime?
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
 

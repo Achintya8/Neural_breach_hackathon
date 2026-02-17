@@ -1,77 +1,71 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { Resource, Tag, User } = require('../models');
 const { GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const s3Client = require('../config/s3');
+const { Op } = require('sequelize');
 
-module.exports = {
-    createResource,
-    getResources,
-    getResourceById,
-    downloadResource,
-    deleteResource
-};
-try {
-    const { title, description, type, subject, semester, year, privacy_level, tags } = req.body;
+// Create Resource
+const createResource = async (req, res) => {
+    try {
+        const { title, description, type, subject, semester, year, privacy_level, tags } = req.body;
 
-    // File from Multer S3
-    if (!req.file) {
-        return res.status(400).json({ message: 'Please upload a file' });
-    }
+        // File from Multer S3
+        if (!req.file) {
+            return res.status(400).json({ message: 'Please upload a file' });
+        }
 
-    const resource = await prisma.resource.create({
-        data: {
+        const resource = await Resource.create({
             title,
             description,
             s3_key: req.file.key,
-            file_url: req.file.location, // Public URL if bucket is public, otherwise key is used for signing
+            file_url: req.file.location,
             type,
             subject,
             semester: parseInt(semester),
             year: parseInt(year),
             privacy_level,
-            college: req.userData.college,
-            uploader_id: req.userData.id,
-            tags: {
-                create: tags ? tags.split(',').map(tag => ({ name: tag.trim() })) : []
-            }
-        }
-    });
+            college: req.userData.college || 'Unknown',
+            uploader_id: req.userData.id
+        });
 
-    res.status(201).json(resource);
-} catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server Error' });
-}
+        // Handle tags if provided
+        if (tags) {
+            const tagNames = tags.split(',').map(tag => tag.trim());
+            const tagInstances = await Promise.all(
+                tagNames.map(name => Tag.findOrCreate({ where: { name } }))
+            );
+            await resource.setTags(tagInstances.map(([tag]) => tag));
+        }
+
+        res.status(201).json(resource);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
 };
 
 // Get All Resources (with filters & access control)
-exports.getResources = async (req, res) => {
+const getResources = async (req, res) => {
     try {
         const { type, subject, semester, search } = req.query;
-        const user = req.userData; // From auth middleware
+        const user = req.userData;
 
         const where = {
-            AND: [
-                // Filter by Type
+            [Op.and]: [
                 type ? { type } : {},
-                // Filter by Subject
-                subject ? { subject: { contains: subject, mode: 'insensitive' } } : {},
-                // Filter by Semester
+                subject ? { subject: { [Op.iLike]: `%${subject}%` } } : {},
                 semester ? { semester: parseInt(semester) } : {},
-                // Search in Title or Description
                 search ? {
-                    OR: [
-                        { title: { contains: search, mode: 'insensitive' } },
-                        { description: { contains: search, mode: 'insensitive' } }
+                    [Op.or]: [
+                        { title: { [Op.iLike]: `%${search}%` } },
+                        { description: { [Op.iLike]: `%${search}%` } }
                     ]
                 } : {},
-                // ACCESS CONTROL LOGIC
                 {
-                    OR: [
+                    [Op.or]: [
                         { privacy_level: 'PUBLIC' },
                         {
-                            AND: [
+                            [Op.and]: [
                                 { privacy_level: 'PRIVATE' },
                                 { college: user.college }
                             ]
@@ -81,13 +75,20 @@ exports.getResources = async (req, res) => {
             ]
         };
 
-        const resources = await prisma.resource.findMany({
+        const resources = await Resource.findAll({
             where,
-            include: {
-                uploader: { select: { name: true, college: true } },
-                tags: true
-            },
-            orderBy: { created_at: 'desc' }
+            include: [
+                {
+                    model: User,
+                    as: 'uploader',
+                    attributes: ['name', 'college']
+                },
+                {
+                    model: Tag,
+                    attributes: ['id', 'name']
+                }
+            ],
+            order: [['created_at', 'DESC']]
         });
 
         res.json(resources);
@@ -98,13 +99,13 @@ exports.getResources = async (req, res) => {
 };
 
 // Get Single Resource
-exports.getResourceById = async (req, res) => {
+const getResourceById = async (req, res) => {
     // Resource is already fetched and attached by accessControl middleware
     res.json(req.resource);
 };
 
 // Download Resource (Generate Presigned URL)
-exports.downloadResource = async (req, res) => {
+const downloadResource = async (req, res) => {
     try {
         const resource = req.resource; // From accessControl middleware
 
@@ -124,9 +125,9 @@ exports.downloadResource = async (req, res) => {
 };
 
 // Delete Resource (Only by uploader)
-exports.deleteResource = async (req, res) => {
+const deleteResource = async (req, res) => {
     try {
-        const resource = await prisma.resource.findUnique({ where: { id: req.params.id } });
+        const resource = await Resource.findByPk(req.params.id);
 
         if (!resource) return res.status(404).json({ message: 'Resource not found' });
 
@@ -137,11 +138,19 @@ exports.deleteResource = async (req, res) => {
         // Delete from S3 (Optional - good practice)
         // ... S3 delete logic here ...
 
-        await prisma.resource.delete({ where: { id: req.params.id } });
+        await resource.destroy();
 
         res.json({ message: 'Resource removed' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server Error' });
     }
+};
+
+module.exports = {
+    createResource,
+    getResources,
+    getResourceById,
+    downloadResource,
+    deleteResource
 };
