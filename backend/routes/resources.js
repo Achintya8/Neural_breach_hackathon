@@ -15,6 +15,16 @@ router.post('/', [auth, upload.single('file')], resourceController.createResourc
 // @access  Private (Need to know user's college)
 router.get('/', auth, resourceController.getResources);
 
+// @route   GET api/resources/my-resources
+// @desc    Get current user's uploaded resources
+// @access  Private
+router.get('/my-resources', auth, resourceController.getMyResources);
+
+// @route   PUT api/resources/:id
+// @desc    Update a resource
+// @access  Private
+router.put('/:id', auth, resourceController.updateResource);
+
 // @route   GET api/resources/:id
 // @desc    Get single resource details
 // @access  Private

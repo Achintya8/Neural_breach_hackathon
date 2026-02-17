@@ -7,6 +7,7 @@ import ForgotPassword from './components/Auth/ForgotPassword';
 import Dashboard from './components/Dashboard/Dashboard';
 import UploadResource from './components/Resources/UploadResource';
 import ResourceDetail from './components/Resources/ResourceDetail';
+import Profile from './components/Profile/Profile';
 import PrivateRoute from './components/Routing/PrivateRoute';
 
 const App = () => {
@@ -22,6 +23,7 @@ const App = () => {
           {/* Private Routes */}
           <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/upload" element={<PrivateRoute><UploadResource /></PrivateRoute>} />
           <Route path="/resource/:id" element={<PrivateRoute><ResourceDetail /></PrivateRoute>} />
 

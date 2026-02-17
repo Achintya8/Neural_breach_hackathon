@@ -193,6 +193,74 @@ const downloadResource = async (req, res) => {
     }
 };
 
+// Get My Resources
+const getMyResources = async (req, res) => {
+    try {
+        const userId = req.userData.id;
+        const resources = await Resource.findAll({
+            where: { uploader_id: userId },
+            include: [
+                {
+                    model: Tag,
+                    attributes: ['id', 'name'],
+                    through: { attributes: [] }
+                },
+                {
+                    model: Review,
+                    as: 'reviews',
+                    attributes: ['rating']
+                }
+            ],
+            order: [['created_at', 'DESC']]
+        });
+
+        const resourcesWithRating = resources.map(res => {
+            const resource = res.toJSON();
+            const totalRating = resource.reviews.reduce((acc, curr) => acc + curr.rating, 0);
+            const avgRating = resource.reviews.length > 0 ? (totalRating / resource.reviews.length).toFixed(1) : 0;
+            delete resource.reviews;
+            return { ...resource, avgRating, reviewCount: res.reviews.length };
+        });
+
+        res.json(resourcesWithRating);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// Update Resource
+const updateResource = async (req, res) => {
+    try {
+        const { title, description, privacy_level, tags } = req.body;
+        const resource = await Resource.findByPk(req.params.id);
+
+        if (!resource) return res.status(404).json({ message: 'Resource not found' });
+
+        if (resource.uploader_id !== req.userData.id) {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        resource.title = title || resource.title;
+        resource.description = description || resource.description;
+        resource.privacy_level = privacy_level || resource.privacy_level;
+        await resource.save();
+
+        if (tags) {
+            const tagNames = tags.split(',').map(tag => tag.trim());
+            const tagInstances = await Promise.all(
+                tagNames.map(name => Tag.findOrCreate({ where: { name } }))
+            );
+            await resource.setTags(tagInstances.map(([tag]) => tag));
+        }
+
+        res.json(resource);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 // Delete Resource (Only by uploader)
 const deleteResource = async (req, res) => {
     try {
@@ -223,5 +291,7 @@ module.exports = {
     downloadResource,
     deleteResource,
     addReview,
-    getReviews
+    getReviews,
+    getMyResources,
+    updateResource
 };
