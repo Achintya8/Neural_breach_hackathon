@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password_hash String
+  name          String
+  college       String
+  branch        String
+  semester      Int
+  profile_pic   String?   // URL to S3
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  resources     Resource[]
+}
+
+model Resource {
+  id            String    @id @default(uuid())
+  title         String
+  description   String?
+  file_url      String?   // Public URL if public, or signed URL generated on fly
+  s3_key        String    // S3 Key for file
+  type          ResourceType
+  subject       String
+  semester      Int
+  year          Int
+  privacy_level PrivacyLevel @default(PUBLIC)
+  college       String    // Copied from uploader for easier querying
+  
+  uploader_id   String
+  uploader      User      @relation(fields: [uploader_id], references: [id])
+  
+  tags          Tag[]
+  
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+}
+
+model Tag {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  resources Resource[]
+}
+
+enum ResourceType {
+  NOTES
+  QUESTION_PAPER
+  SOLUTION
+  PROJECT_REPORT
+  STUDY_MATERIAL
+  OTHER
+}
+
+enum PrivacyLevel {
+  PUBLIC
+  PRIVATE
+}
