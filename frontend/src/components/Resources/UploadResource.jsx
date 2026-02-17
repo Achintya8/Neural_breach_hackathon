@@ -61,10 +61,10 @@ const UploadResource = () => {
 
     return (
         <div className="max-w-4xl mx-auto p-6">
-            <h2 className="text-3xl font-bold text-white mb-6">Upload Resource</h2>
+            <h2 className="text-3xl font-bold text-stone-900 mb-6">Upload Resource</h2>
 
             {message && (
-                <div className={`p-4 mb-6 rounded ${message.type === 'error' ? 'bg-red-500/20 text-red-200' : 'bg-green-500/20 text-green-200'}`}>
+                <div className={`p-4 mb-6 rounded ${message.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
                     {message.text}
                 </div>
             )}
@@ -72,7 +72,7 @@ const UploadResource = () => {
             <form onSubmit={onSubmit} className="glass-card p-8 rounded-xl space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-gray-300 mb-2">Title</label>
+                        <label className="block text-stone-700 mb-2">Title</label>
                         <input
                             type="text"
                             name="title"
@@ -84,7 +84,7 @@ const UploadResource = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-gray-300 mb-2">Subject</label>
+                        <label className="block text-stone-700 mb-2">Subject</label>
                         <input
                             type="text"
                             name="subject"
@@ -96,7 +96,7 @@ const UploadResource = () => {
                         />
                     </div>
                     <div>
-                        <label className="block text-gray-300 mb-2">Type</label>
+                        <label className="block text-stone-700 mb-2">Type</label>
                         <select
                             name="type"
                             value={type}
@@ -113,7 +113,7 @@ const UploadResource = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-gray-300 mb-2">Semester</label>
+                            <label className="block text-stone-700 mb-2">Semester</label>
                             <select
                                 name="semester"
                                 value={semester}
@@ -128,7 +128,7 @@ const UploadResource = () => {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-gray-300 mb-2">Year</label>
+                            <label className="block text-stone-700 mb-2">Year</label>
                             <input
                                 type="number"
                                 name="year"
@@ -145,7 +145,7 @@ const UploadResource = () => {
                 </div>
 
                 <div>
-                    <label className="block text-gray-300 mb-2">Description</label>
+                    <label className="block text-stone-700 mb-2">Description</label>
                     <textarea
                         name="description"
                         value={description}
@@ -156,7 +156,7 @@ const UploadResource = () => {
                 </div>
 
                 <div>
-                    <label className="block text-gray-300 mb-2">Tags (comma separated)</label>
+                    <label className="block text-stone-700 mb-2">Tags (comma separated)</label>
                     <input
                         type="text"
                         name="tags"
@@ -169,16 +169,16 @@ const UploadResource = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-gray-300 mb-2">File (PDF, DOC, Images)</label>
+                        <label className="block text-stone-700 mb-2">File (PDF, DOC, Images)</label>
                         <input
                             type="file"
                             onChange={onFileChange}
                             required
-                            className="glass-input w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                            className="glass-input w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-100 file:text-amber-700 hover:file:bg-amber-200"
                         />
                     </div>
                     <div>
-                        <label className="block text-gray-300 mb-2">Privacy</label>
+                        <label className="block text-stone-700 mb-2">Privacy</label>
                         <select
                             name="privacy_level"
                             value={privacy_level}
@@ -194,8 +194,7 @@ const UploadResource = () => {
                 <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full py-3 px-4 rounded-lg text-white font-bold shadow-lg transition-all ${loading ? 'bg-gray-500 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transform hover:scale-[1.02]'
-                        }`}
+                    className={`btn-primary w-full py-3 px-4 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {loading ? 'Uploading...' : 'Upload Resource'}
                 </button>

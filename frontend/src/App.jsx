@@ -13,7 +13,7 @@ const App = () => {
   return (
     <Router>
       <Navbar />
-      <div className="min-h-screen bg-[#0f172a] bg-gradient-to-br from-gray-900 via-slate-900 to-black pt-16">
+      <div className="min-h-screen bg-stone-50 bg-linear-to-br from-amber-50 via-orange-50 to-stone-100 pt-16">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -26,7 +26,7 @@ const App = () => {
           <Route path="/resource/:id" element={<PrivateRoute><ResourceDetail /></PrivateRoute>} />
 
           {/* 404 Route */}
-          <Route path="*" element={<div className="text-white text-center mt-20">404 - Page Not Found</div>} />
+          <Route path="*" element={<div className="text-stone-900 text-center mt-20">404 - Page Not Found</div>} />
         </Routes>
       </div>
     </Router>
