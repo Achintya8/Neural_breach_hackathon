@@ -33,14 +33,24 @@ const Navbar = () => {
                             <Link to="/dashboard" className="text-stone-600 hover:text-stone-900 px-3 py-2 rounded-md font-medium transition-colors">
                                 Dashboard
                             </Link>
-                            <Link to="/profile" className="text-stone-600 hover:text-stone-900 px-3 py-2 rounded-md font-medium transition-colors">
-                                Profile
-                            </Link>
                             <Link to="/upload" className="text-stone-600 hover:text-stone-900 px-3 py-2 rounded-md font-medium transition-colors">
                                 Upload
                             </Link>
                             <div className="flex items-center gap-4 ml-4">
-                                <span className="text-amber-700 font-medium">{user.name}</span>
+                                <Link to="/profile" className="flex items-center gap-2 hover:bg-stone-100 p-2 rounded-lg transition-colors group">
+                                    {user.profile_pic ? (
+                                        <img
+                                            src={user.profile_pic}
+                                            alt={user.name}
+                                            className="h-8 w-8 rounded-full object-cover border-2 border-amber-500 group-hover:border-amber-600"
+                                        />
+                                    ) : (
+                                        <div className="h-8 w-8 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold group-hover:bg-amber-600">
+                                            {user.name?.charAt(0)}
+                                        </div>
+                                    )}
+                                    <span className="text-stone-700 font-medium hidden md:block group-hover:text-stone-900">{user.name}</span>
+                                </Link>
                                 <button
                                     onClick={handleLogout}
                                     className="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-2 rounded-md font-medium transition-colors flex items-center gap-2"
