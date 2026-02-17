@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../utils/api';
-import { Download, Star, User, Calendar, BookOpen, Shield, ArrowLeft, MessageSquare, Eye, X } from 'lucide-react';
+import { Download, Star, User, Calendar, BookOpen, Shield, ArrowLeft, MessageSquare, Eye } from 'lucide-react';
+import DiscussionSection from './DiscussionSection';
 
 const ResourceDetail = () => {
     const { id } = useParams();
@@ -9,6 +10,7 @@ const ResourceDetail = () => {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
     const [downloadLoading, setDownloadLoading] = useState(false);
     const [previewLoading, setPreviewLoading] = useState(false);
 
@@ -42,21 +44,6 @@ const ResourceDetail = () => {
         }
     };
 
-    const handleReviewSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await api.post(`/resources/${id}/reviews`, newReview);
-            // Update reviews list (if new, add; if exists, update - for simplicity here just re-fetch or append)
-            // Since API returns the review, let's just append for now if not exists, or map. 
-            // Better to re-fetch to get user details populated if API doesn't return joined user
-            const reviewsData = await api.get(`/resources/${id}/reviews`);
-            setReviews(reviewsData.data);
-            setNewReview({ rating: 5, comment: '' });
-        } catch (err) {
-            alert('Error submitting review');
-        }
-    };
-
     const handlePreview = async () => {
         try {
             setPreviewLoading(true);
@@ -66,6 +53,18 @@ const ResourceDetail = () => {
             alert('Error loading preview');
         } finally {
             setPreviewLoading(false);
+        }
+    };
+
+    const handleReviewSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await api.post(`/resources/${id}/reviews`, newReview);
+            const reviewsData = await api.get(`/resources/${id}/reviews`);
+            setReviews(reviewsData.data);
+            setNewReview({ rating: 5, comment: '' });
+        } catch (err) {
+            alert('Error submitting review');
         }
     };
 
@@ -93,7 +92,8 @@ const ResourceDetail = () => {
                             onClick={handlePreview}
                             className="bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
                         >
-                            <Eye size={20} /> Preview
+                            <Eye size={20} />Preview
+                            {previewLoading && <span className="animate-spin ml-2">...</span>}
                         </button>
                         <button
                             onClick={handleDownload}
@@ -125,9 +125,11 @@ const ResourceDetail = () => {
                 </div>
             </div>
 
+            {/* Discussion Section */}
+            <DiscussionSection resourceId={id} currentUserId={user.id} />
+
             {/* Reviews Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* ... existing review section ... */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
                 <div className="glass-card p-6 rounded-xl h-fit">
                     <h3 className="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
                         <Star className="text-yellow-500" /> Rate & Review
@@ -187,8 +189,6 @@ const ResourceDetail = () => {
                     )}
                 </div>
             </div>
-
-
         </div>
     );
 };

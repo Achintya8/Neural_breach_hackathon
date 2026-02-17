@@ -3,6 +3,7 @@ const User = require('./User');
 const Resource = require('./Resource');
 const Tag = require('./Tag');
 const Review = require('./Review');
+const Discussion = require('./Discussion');
 
 // Define associations
 User.hasMany(Resource, {
@@ -47,10 +48,41 @@ Review.belongsTo(Resource, {
     as: 'resource'
 });
 
+// Discussion Associations
+User.hasMany(Discussion, {
+    foreignKey: 'user_id',
+    as: 'discussions'
+});
+
+Discussion.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'user'
+});
+
+Resource.hasMany(Discussion, {
+    foreignKey: 'resource_id',
+    as: 'discussions'
+});
+
+Discussion.belongsTo(Resource, {
+    foreignKey: 'resource_id',
+    as: 'resource'
+});
+
+Discussion.hasMany(Discussion, {
+    foreignKey: 'parent_id',
+    as: 'replies'
+});
+
+Discussion.belongsTo(Discussion, {
+    foreignKey: 'parent_id',
+    as: 'parent'
+});
+
 // Sync database (create tables if they don't exist)
 const syncDatabase = async () => {
     try {
-        await sequelize.sync({ alter: true }); // Use alter to update existing tables
+        await sequelize.sync(); // Remove alter: true to avoid 'Too many keys' error on Users table
         console.log('✓ Database synced successfully');
     } catch (error) {
         console.error('✗ Database sync failed:', error);
@@ -63,5 +95,6 @@ module.exports = {
     Resource,
     Tag,
     Review,
+    Discussion,
     syncDatabase
 };
