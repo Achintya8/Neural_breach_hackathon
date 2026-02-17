@@ -25,6 +25,9 @@ async function checkDbConnection() {
 checkDbConnection();
 
 // Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/resources', require('./routes/resources'));
+
 app.get('/', (req, res) => {
     res.send('Campus Resource Sharing API is running');
 });
