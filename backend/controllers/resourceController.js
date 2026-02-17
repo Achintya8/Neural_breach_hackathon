@@ -202,6 +202,37 @@ const getResourceById = async (req, res) => {
     }
 };
 
+// Preview Resource (Generate Presigned URL for inline view)
+const previewResource = async (req, res) => {
+    try {
+        const resource = req.resource; // From accessControl middleware
+
+        let contentType = 'application/octet-stream';
+        const ext = resource.s3_key.split('.').pop().toLowerCase();
+        if (ext === 'pdf') contentType = 'application/pdf';
+        else if (['jpg', 'jpeg'].includes(ext)) contentType = 'image/jpeg';
+        else if (ext === 'png') contentType = 'image/png';
+        else if (ext === 'txt') contentType = 'text/plain';
+
+        const command = new GetObjectCommand({
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: resource.s3_key,
+            ResponseContentDisposition: 'inline', // Forces browser to try opening it
+            ResponseContentType: contentType
+        });
+
+        // Generate signed URL valid for 1 hour
+        const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+
+        // Do NOT increment downloads for preview
+
+        res.json({ previewUrl: url });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error generating preview link' });
+    }
+};
+
 // Download Resource (Generate Presigned URL)
 const downloadResource = async (req, res) => {
     try {
@@ -210,6 +241,7 @@ const downloadResource = async (req, res) => {
         const command = new GetObjectCommand({
             Bucket: process.env.AWS_BUCKET_NAME,
             Key: resource.s3_key,
+            ResponseContentDisposition: 'attachment' // Forces download
         });
 
         // Generate signed URL valid for 1 hour
@@ -320,6 +352,7 @@ module.exports = {
     createResource,
     getResources,
     getResourceById,
+    previewResource,
     downloadResource,
     deleteResource,
     addReview,

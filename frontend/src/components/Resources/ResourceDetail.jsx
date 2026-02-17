@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../utils/api';
-import { Download, Star, User, Calendar, BookOpen, Shield, ArrowLeft, MessageSquare } from 'lucide-react';
+import { Download, Star, User, Calendar, BookOpen, Shield, ArrowLeft, MessageSquare, Eye, X } from 'lucide-react';
 
 const ResourceDetail = () => {
     const { id } = useParams();
@@ -10,6 +10,7 @@ const ResourceDetail = () => {
     const [loading, setLoading] = useState(true);
     const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
     const [downloadLoading, setDownloadLoading] = useState(false);
+    const [previewLoading, setPreviewLoading] = useState(false);
 
     useEffect(() => {
         const fetchResourceAndReviews = async () => {
@@ -56,6 +57,18 @@ const ResourceDetail = () => {
         }
     };
 
+    const handlePreview = async () => {
+        try {
+            setPreviewLoading(true);
+            const res = await api.get(`/resources/preview/${id}`);
+            window.open(res.data.previewUrl, '_blank');
+        } catch (err) {
+            alert('Error loading preview');
+        } finally {
+            setPreviewLoading(false);
+        }
+    };
+
     if (loading) return <div className="text-stone-600 text-center mt-20">Loading...</div>;
     if (!resource) return <div className="text-stone-600 text-center mt-20">Resource not found</div>;
 
@@ -75,13 +88,21 @@ const ResourceDetail = () => {
                             <span className="flex items-center gap-1"><Shield size={16} className={resource.privacy_level === 'PRIVATE' ? 'text-red-500' : 'text-green-600'} /> {resource.privacy_level}</span>
                         </div>
                     </div>
-                    <button
-                        onClick={handleDownload}
-                        disabled={downloadLoading}
-                        className="btn-primary flex items-center gap-2"
-                    >
-                        <Download size={20} /> {downloadLoading ? 'Generating...' : 'Download'}
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handlePreview}
+                            className="bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
+                        >
+                            <Eye size={20} /> Preview
+                        </button>
+                        <button
+                            onClick={handleDownload}
+                            disabled={downloadLoading}
+                            className="btn-primary flex items-center gap-2"
+                        >
+                            <Download size={20} /> {downloadLoading ? 'Generating...' : 'Download'}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="text-stone-700 leading-relaxed mb-6">
@@ -106,6 +127,7 @@ const ResourceDetail = () => {
 
             {/* Reviews Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* ... existing review section ... */}
                 <div className="glass-card p-6 rounded-xl h-fit">
                     <h3 className="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
                         <Star className="text-yellow-500" /> Rate & Review
@@ -165,6 +187,8 @@ const ResourceDetail = () => {
                     )}
                 </div>
             </div>
+
+
         </div>
     );
 };

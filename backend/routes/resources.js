@@ -30,6 +30,11 @@ router.put('/:id', auth, resourceController.updateResource);
 // @access  Private
 router.get('/:id', [auth, accessControl], resourceController.getResourceById);
 
+// @route   GET api/resources/preview/:id
+// @desc    Get preview link
+// @access  Private
+router.get('/preview/:id', [auth, accessControl], resourceController.previewResource);
+
 // @route   GET api/resources/download/:id
 // @desc    Get download link
 // @access  Private

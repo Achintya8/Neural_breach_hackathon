@@ -24,6 +24,7 @@ const upload = multer({
         metadata: function (req, file, cb) {
             cb(null, { fieldName: file.fieldname });
         },
+        contentType: multerS3.AUTO_CONTENT_TYPE, // Automatically set Content-Type based on file mimetype
         key: function (req, file, cb) {
             // Create unique filename: uploads/timestamp-filename
             const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
