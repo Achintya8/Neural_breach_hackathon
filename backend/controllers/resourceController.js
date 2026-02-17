@@ -7,7 +7,7 @@ const { Op } = require('sequelize');
 // Create Resource
 const createResource = async (req, res) => {
     try {
-        const { title, description, type, subject, semester, year, privacy_level, tags } = req.body;
+        const { title, description, type, subject, semester, year, privacy_level, branch, tags } = req.body;
 
         // File from Multer S3
         if (!req.file) {
@@ -24,6 +24,7 @@ const createResource = async (req, res) => {
             semester: parseInt(semester),
             year: parseInt(year),
             privacy_level,
+            branch,
             college: req.userData.college || 'Unknown',
             uploader_id: req.userData.id
         });
@@ -47,7 +48,7 @@ const createResource = async (req, res) => {
 // Get All Resources (with filters & access control)
 const getResources = async (req, res) => {
     try {
-        const { type, subject, semester, search } = req.query;
+        const { type, subject, semester, search, privacy_level, sort, branch } = req.query;
         const user = req.userData;
 
         const where = {
@@ -55,6 +56,8 @@ const getResources = async (req, res) => {
                 type ? { type } : {},
                 subject ? { subject: { [Op.like]: `%${subject}%` } } : {},
                 semester ? { semester: parseInt(semester) } : {},
+                branch ? { branch } : {},
+                privacy_level ? { privacy_level } : {},
                 search ? {
                     [Op.or]: [
                         { title: { [Op.like]: `%${search}%` } },
@@ -76,6 +79,14 @@ const getResources = async (req, res) => {
             ]
         };
 
+        let order = [['created_at', 'DESC']]; // Default: Latest
+        if (sort === 'popular') {
+            order = [['views', 'DESC'], ['downloads', 'DESC']];
+        } else if (sort === 'oldest') {
+            order = [['created_at', 'ASC']];
+        }
+        // 'rated' sorting will be handled after fetching because avgRating is computed
+
         const resources = await Resource.findAll({
             where,
             include: [
@@ -95,17 +106,26 @@ const getResources = async (req, res) => {
                     attributes: ['rating']
                 }
             ],
-            order: [['created_at', 'DESC']]
+            order
         });
 
-        // Calculate average rating
-        const resourcesWithRating = resources.map(res => {
+        // Calculate average rating and flatten
+        let resourcesWithRating = resources.map(res => {
             const resource = res.toJSON();
             const totalRating = resource.reviews.reduce((acc, curr) => acc + curr.rating, 0);
             const avgRating = resource.reviews.length > 0 ? (totalRating / resource.reviews.length).toFixed(1) : 0;
             delete resource.reviews;
-            return { ...resource, avgRating, reviewCount: res.reviews.length };
+            return {
+                ...resource,
+                avgRating: parseFloat(avgRating),
+                reviewCount: res.reviews.length
+            };
         });
+
+        // Handle 'highest rated' sort in memory
+        if (sort === 'rated') {
+            resourcesWithRating.sort((a, b) => b.avgRating - a.avgRating);
+        }
 
         res.json(resourcesWithRating);
     } catch (error) {
@@ -170,7 +190,16 @@ const getReviews = async (req, res) => {
 // Get Single Resource
 const getResourceById = async (req, res) => {
     // Resource is already fetched and attached by accessControl middleware
-    res.json(req.resource);
+    // We should increment views here
+    try {
+        await req.resource.increment('views');
+        // Fetch updated resource or manually update the property to return immediately
+        req.resource.views += 1;
+        res.json(req.resource);
+    } catch (err) {
+        console.error("Error incrementing views:", err);
+        res.json(req.resource); // Return resource anyway
+    }
 };
 
 // Download Resource (Generate Presigned URL)
@@ -185,6 +214,9 @@ const downloadResource = async (req, res) => {
 
         // Generate signed URL valid for 1 hour
         const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+
+        // Increment downloads
+        await resource.increment('downloads');
 
         res.json({ downloadUrl: url });
     } catch (error) {

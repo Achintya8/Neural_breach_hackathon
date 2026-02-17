@@ -113,8 +113,8 @@ const Profile = () => {
                                 <p className="text-stone-600 text-sm mb-4 line-clamp-2">{resource.description}</p>
 
                                 <div className="flex items-center gap-4 text-sm text-stone-500 mb-4">
-                                    <span className="flex items-center gap-1"><Eye size={14} /> 120</span> {/* Mock data for now */}
-                                    <span className="flex items-center gap-1"><Download size={14} /> 45</span>
+                                    <span className="flex items-center gap-1"><Eye size={14} /> {resource.views || 0}</span>
+                                    <span className="flex items-center gap-1"><Download size={14} /> {resource.downloads || 0}</span>
                                     <span className="flex items-center gap-1 text-amber-500"><Star size={14} fill="currentColor" /> {resource.avgRating || 0}</span>
                                 </div>
 

@@ -71,7 +71,7 @@ const ResourceDetail = () => {
                         <h1 className="text-3xl font-bold text-stone-900 mb-2">{resource.title}</h1>
                         <div className="flex flex-wrap gap-4 text-stone-500 text-sm">
                             <span className="flex items-center gap-1"><BookOpen size={16} /> {resource.subject}</span>
-                            <span className="flex items-center gap-1"><Calendar size={16} /> Sem {resource.semester} • {resource.year}</span>
+                            <span className="flex items-center gap-1"><Calendar size={16} /> Sem {resource.semester} • {resource.year} • {resource.branch}</span>
                             <span className="flex items-center gap-1"><Shield size={16} className={resource.privacy_level === 'PRIVATE' ? 'text-red-500' : 'text-green-600'} /> {resource.privacy_level}</span>
                         </div>
                     </div>

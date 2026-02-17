@@ -35,6 +35,10 @@ const Resource = sequelize.define('Resource', {
         type: DataTypes.INTEGER,
         allowNull: false
     },
+    branch: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
     year: {
         type: DataTypes.INTEGER,
         allowNull: false
@@ -42,6 +46,14 @@ const Resource = sequelize.define('Resource', {
     privacy_level: {
         type: DataTypes.ENUM('PUBLIC', 'PRIVATE'),
         defaultValue: 'PUBLIC'
+    },
+    views: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+    downloads: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     },
     college: {
         type: DataTypes.STRING,

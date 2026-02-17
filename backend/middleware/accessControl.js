@@ -1,11 +1,18 @@
-const { Resource } = require('../models');
+const { Resource, User } = require('../models');
 
 module.exports = async (req, res, next) => {
     try {
         const user = req.userData; // From auth middleware
         const resourceId = req.params.id;
-
-        const resource = await Resource.findByPk(resourceId);
+        const resource = await Resource.findByPk(req.params.id, {
+            include: [
+                {
+                    model: User,
+                    as: 'uploader',
+                    attributes: ['name', 'college', 'profile_pic'] // Include profile_pic too
+                }
+            ]
+        });
 
         if (!resource) {
             return res.status(404).json({ message: 'Resource not found' });

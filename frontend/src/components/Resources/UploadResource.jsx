@@ -12,13 +12,14 @@ const UploadResource = () => {
         year: '',
         type: 'NOTES',
         privacy_level: 'PUBLIC',
+        branch: '',
         tags: ''
     });
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
 
-    const { title, description, subject, semester, year, type, privacy_level, tags } = formData;
+    const { title, description, subject, semester, year, type, privacy_level, branch, tags } = formData;
 
     const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -108,6 +109,25 @@ const UploadResource = () => {
                             <option value="SOLUTION">Solution</option>
                             <option value="PROJECT_REPORT">Project Report</option>
                             <option value="STUDY_MATERIAL">Study Material</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-stone-700 mb-2">Branch</label>
+                        <select
+                            name="branch"
+                            value={branch}
+                            onChange={onChange}
+                            required
+                            className="glass-input w-full"
+                        >
+                            <option value="">Select Branch</option>
+                            <option value="CSE">Computer Science (CSE)</option>
+                            <option value="ECE">Electronics (ECE)</option>
+                            <option value="ME">Mechanical (ME)</option>
+                            <option value="CE">Civil (CE)</option>
+                            <option value="EE">Electrical (EE)</option>
+                            <option value="IT">Information Tech (IT)</option>
                             <option value="OTHER">Other</option>
                         </select>
                     </div>
