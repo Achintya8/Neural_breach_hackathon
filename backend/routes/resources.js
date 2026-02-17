@@ -30,4 +30,14 @@ router.get('/download/:id', [auth, accessControl], resourceController.downloadRe
 // @access  Private
 router.delete('/:id', auth, resourceController.deleteResource);
 
+// @route   POST api/resources/:id/reviews
+// @desc    Add a review
+// @access  Private
+router.post('/:id/reviews', auth, accessControl, resourceController.addReview);
+
+// @route   GET api/resources/:id/reviews
+// @desc    Get reviews for a resource
+// @access  Private
+router.get('/:id/reviews', auth, accessControl, resourceController.getReviews);
+
 module.exports = router;

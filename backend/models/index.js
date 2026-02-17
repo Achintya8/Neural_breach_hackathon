@@ -2,6 +2,7 @@ const sequelize = require('../config/database');
 const User = require('./User');
 const Resource = require('./Resource');
 const Tag = require('./Tag');
+const Review = require('./Review');
 
 // Define associations
 User.hasMany(Resource, {
@@ -25,6 +26,27 @@ Tag.belongsToMany(Resource, {
     timestamps: false
 });
 
+// Review Associations
+User.hasMany(Review, {
+    foreignKey: 'user_id',
+    as: 'reviews'
+});
+
+Review.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'user'
+});
+
+Resource.hasMany(Review, {
+    foreignKey: 'resource_id',
+    as: 'reviews'
+});
+
+Review.belongsTo(Resource, {
+    foreignKey: 'resource_id',
+    as: 'resource'
+});
+
 // Sync database (create tables if they don't exist)
 const syncDatabase = async () => {
     try {
@@ -40,5 +62,6 @@ module.exports = {
     User,
     Resource,
     Tag,
+    Review,
     syncDatabase
 };

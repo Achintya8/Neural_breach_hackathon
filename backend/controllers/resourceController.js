@@ -1,4 +1,4 @@
-const { Resource, Tag, User } = require('../models');
+const { Resource, Tag, User, Review } = require('../models');
 const { GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const s3Client = require('../config/s3');
@@ -53,12 +53,13 @@ const getResources = async (req, res) => {
         const where = {
             [Op.and]: [
                 type ? { type } : {},
-                subject ? { subject: { [Op.iLike]: `%${subject}%` } } : {},
+                subject ? { subject: { [Op.like]: `%${subject}%` } } : {},
                 semester ? { semester: parseInt(semester) } : {},
                 search ? {
                     [Op.or]: [
-                        { title: { [Op.iLike]: `%${search}%` } },
-                        { description: { [Op.iLike]: `%${search}%` } }
+                        { title: { [Op.like]: `%${search}%` } },
+                        { description: { [Op.like]: `%${search}%` } },
+                        { subject: { [Op.like]: `%${search}%` } }
                     ]
                 } : {},
                 {
@@ -85,13 +86,81 @@ const getResources = async (req, res) => {
                 },
                 {
                     model: Tag,
-                    attributes: ['id', 'name']
+                    attributes: ['id', 'name'],
+                    through: { attributes: [] }
+                },
+                {
+                    model: Review,
+                    as: 'reviews',
+                    attributes: ['rating']
                 }
             ],
             order: [['created_at', 'DESC']]
         });
 
-        res.json(resources);
+        // Calculate average rating
+        const resourcesWithRating = resources.map(res => {
+            const resource = res.toJSON();
+            const totalRating = resource.reviews.reduce((acc, curr) => acc + curr.rating, 0);
+            const avgRating = resource.reviews.length > 0 ? (totalRating / resource.reviews.length).toFixed(1) : 0;
+            delete resource.reviews;
+            return { ...resource, avgRating, reviewCount: res.reviews.length };
+        });
+
+        res.json(resourcesWithRating);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// Add Review
+const addReview = async (req, res) => {
+    try {
+        const { rating, comment } = req.body;
+        const resourceId = req.params.id;
+        const userId = req.userData.id;
+
+        // Check if user already reviewed
+        const existingReview = await Review.findOne({
+            where: { user_id: userId, resource_id: resourceId }
+        });
+
+        if (existingReview) {
+            existingReview.rating = rating;
+            existingReview.comment = comment;
+            await existingReview.save();
+            return res.json(existingReview);
+        }
+
+        const review = await Review.create({
+            rating,
+            comment,
+            user_id: userId,
+            resource_id: resourceId
+        });
+
+        res.status(201).json(review);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// Get Reviews for a Resource
+const getReviews = async (req, res) => {
+    try {
+        const resourceId = req.params.id;
+        const reviews = await Review.findAll({
+            where: { resource_id: resourceId },
+            include: [{
+                model: User,
+                as: 'user',
+                attributes: ['name']
+            }],
+            order: [['created_at', 'DESC']]
+        });
+        res.json(reviews);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server Error' });
@@ -152,5 +221,7 @@ module.exports = {
     getResources,
     getResourceById,
     downloadResource,
-    deleteResource
+    deleteResource,
+    addReview,
+    getReviews
 };
