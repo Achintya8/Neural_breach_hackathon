@@ -198,8 +198,8 @@ const Dashboard = () => {
                 <div className="text-center text-stone-500 text-xl mt-12">No resources found. Upload one!</div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {resources.map(resource => (
-                        <div key={resource.id} className="glass-card p-6 rounded-xl hover:bg-amber-50/50 transition-all group">
+                    {resources.map((resource, index) => (
+                        <div key={resource.id} className="glass-card p-6 rounded-xl hover:bg-amber-50/50 transition-all group stagger-item card-3d hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
                             <div className="flex justify-between items-start mb-4">
                                 <div className={`px-3 py-1 rounded-full text-xs font-semibold ${resource.type === 'NOTES' ? 'bg-blue-100 text-blue-700' :
                                     resource.type === 'QUESTION_PAPER' ? 'bg-red-100 text-red-700' :
